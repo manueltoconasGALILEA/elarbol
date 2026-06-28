@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sust-Ansias Sin Filtro</title>
+    <!-- Tailwind CSS para los estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React y Babel para que funcione en un solo archivo -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-50 antialiased text-gray-900">
+    <div id="root"></div>
+
+    <!-- SCRIPT 1: INICIALIZAR LA BASE DE DATOS (FIREBASE) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // ⚠️⚠️⚠️ ¡PEGA TU FIREBASECONFIG AQUÍ ABAJO! ⚠️⚠️⚠️
+        // Borra este bloque de ejemplo y pega el que te da Firebase en el Paso 1.
+        const firebaseConfig = {apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQukHcurDirU62O4",
+  authDomain: "el-arbol-2026.firebaseapp.com",
+  projectId: "el-arbol-2026",
+  storageBucket: "el-arbol-2026.firebasestorage.app",
+  messagingSenderId: "899394834604",
+  appId: "1:899394834604:web:16585c60a0402987494f09"
+        };
+        // ⚠️⚠️⚠️ FIN DE LA CONFIGURACIÓN ⚠️⚠️⚠️
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Pasamos Firebase a React
+        window.firebaseAPI = {
+            auth, db, signInAnonymously, onAuthStateChanged, collection, addDoc, onSnapshot, query
+        };
+    </script>
+
+    <!-- SCRIPT 2: EL CÓDIGO DE LA APLICACIÓN Y DISEÑO -->
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Íconos en formato SVG para no depender de librerías externas
+        const Icons = {
+            Camera: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
+            Clipboard: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>,
+            Lock: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+            Image: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
+            Send: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>,
+            Chart: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>,
+            Check: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+        };
+
+        // Constantes Generales
+        const LOGO_URL = "logo.jpg"; // Asegúrate de que el logo se llame así en tu carpeta
+        const ADMIN_PASSWORD = "ARBOL26";
+
+        const SURVEY_QUESTIONS = [
+          {
+            id: 'q1',
+            text: '¿Cómo calificarías la jornada de hoy?',
+            options: ['Excelente', 'Muy buena', 'Buena', 'Regular'],
+            colors: ['#4ade80', '#2dd4bf', '#fbbf24', '#f87171']
+          },
+          {
+            id: 'q2',
+            text: '¿Qué temática te pareció más interesante?',
+            options: ['Prevención', 'Vínculos', 'Salud Mental', 'Arte y Expresión'],
+            colors: ['#a855f7', '#ec4899', '#3b82f6', '#f97316']
+          },
+          {
+            id: 'q3',
+            text: '¿Te gustaría participar en más encuentros como este?',
+            options: ['Sí, definitivamente', 'Tal vez', 'No por ahora'],
+            colors: ['#22c55e', '#eab308', '#ef4444']
+          }
+        ];
+
+        // Componente Gráfico de Torta
+        const PieChart = ({ data, title }) => {
+          const total = data.reduce((acc, curr) => acc + curr.value, 0);
+          let cumulativePercent = 0;
+
+          if (total === 0) {
+            return <div className="text-gray-500 italic text-center p-4">Sin respuestas aún</div>;
+          }
+
+          return (
+            <div className="flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+              <h3 className="font-bold text-center mb-4 text-[#15a892]">{title}</h3>
+              <svg viewBox="-1 -1 2 2" className="w-48 h-48 transform -rotate-90 drop-shadow-md">
+                {data.map(slice => {
+                  if (slice.value === 0) return null;
+                  const percent = slice.value / total;
+                  const startAngle = cumulativePercent * 2 * Math.PI;
+                  cumulativePercent += percent;
+                  const endAngle = cumulativePercent * 2 * Math.PI;
+                  
+                  const startX = Math.cos(startAngle);
+                  const startY = Math.sin(startAngle);
+                  const endX = Math.cos(endAngle);
+                  const endY = Math.sin(endAngle);
+                  const largeArcFlag = percent > 0.5 ? 1 : 0;
+                  
+                  if (percent === 1) return <circle cx="0" cy="0" r="1" fill={slice.color} key={slice.label}/>;
+                  const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+                  
+                  return <path d={pathData} fill={slice.color} key={slice.label} className="transition-all duration-300 hover:opacity-80" />;
+                })}
+              </svg>
+              <div className="mt-6 flex flex-col gap-2 w-full">
+                {data.map(slice => (
+                  <div key={slice.label} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full shadow-sm" style={{backgroundColor: slice.color}}></span>
+                      <span className="font-medium text-gray-700">{slice.label}</span>
+                    </div>
+                    <span className="font-bold text-gray-900">
+                      {Math.round((slice.value/total)*100)}% <span className="text-gray-400 font-normal text-xs">({slice.value})</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        };
+
+        // Componente Principal
+        function App() {
+          const [activeTab, setActiveTab] = useState('photos');
+          const [isAuthLoading, setIsAuthLoading] = useState(true);
+          const [user, setUser] = useState(null);
+          
+          const [photos, setPhotos] = useState([]);
+          const [surveyAnswers, setSurveyAnswers] = useState([]);
+          const [hasSubmittedSurvey, setHasSubmittedSurvey] = useState(false);
+          
+          const [isAdmin, setIsAdmin] = useState(false);
+          const [passwordInput, setPasswordInput] = useState('');
+
+          const [currentAnswers, setCurrentAnswers] = useState({});
+          const [isUploadingImage, setIsUploadingImage] = useState(false);
+          const [firebaseError, setFirebaseError] = useState(false);
+          const fileInputRef = useRef(null);
+
+          // Inicializar autenticación y lectura de base de datos
+          useEffect(() => {
+            // Esperar a que Firebase se cargue desde el script 1
+            const timer = setInterval(() => {
+                if (window.firebaseAPI) {
+                    clearInterval(timer);
+                    initFirebase();
+                }
+            }, 100);
+            
+            return () => clearInterval(timer);
+          }, []);
+
+          const initFirebase = async () => {
+            const fb = window.firebaseAPI;
+            try {
+              await fb.signInAnonymously(fb.auth);
+              fb.onAuthStateChanged(fb.auth, (currentUser) => {
+                setUser(currentUser);
+                setIsAuthLoading(false);
+                if (currentUser) loadData(fb, currentUser);
+              });
+            } catch (error) {
+              console.error("Error conectando a Firebase:", error);
+              setFirebaseError(true);
+              setIsAuthLoading(false);
+            }
+          };
+
+          const loadData = (fb, currentUser) => {
+            const photosRef = fb.collection(fb.db, 'photos');
+            const surveyRef = fb.collection(fb.db, 'survey');
+
+            fb.onSnapshot(fb.query(photosRef), (snapshot) => {
+              const photosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              photosData.sort((a, b) => b.timestamp - a.timestamp);
+              setPhotos(photosData);
+            }, (error) => console.log("Permisos BD - Configura Firebase en modo prueba"));
+
+            fb.onSnapshot(fb.query(surveyRef), (snapshot) => {
+              const answersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setSurveyAnswers(answersData);
+            });
+          };
+
+          const handleImageUpload = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            setIsUploadingImage(true);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const img = new Image();
+              img.onload = async () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; 
+                let scaleSize = 1;
+                if (img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
+                canvas.width = img.width * scaleSize;
+                canvas.height = img.height * scaleSize;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                
+                try {
+                  const fb = window.firebaseAPI;
+                  const photosRef = fb.collection(fb.db, 'photos');
+                  await fb.addDoc(photosRef, {
+                    url: compressedBase64,
+                    timestamp: Date.now(),
+                    userId: user.uid
+                  });
+                } catch (error) {
+                  alert("Hubo un error al subir la foto. Verifica tu Firebase.");
+                } finally {
+                  setIsUploadingImage(false);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+              };
+              img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          };
+
+          const handleSurveySubmit = async (e) => {
+            e.preventDefault();
+            if (Object.keys(currentAnswers).length < SURVEY_QUESTIONS.length) return; 
+
+            try {
+              const fb = window.firebaseAPI;
+              const surveyRef = fb.collection(fb.db, 'survey');
+              await fb.addDoc(surveyRef, {
+                answers: currentAnswers,
+                timestamp: Date.now(),
+                userId: user.uid
+              });
+              setHasSubmittedSurvey(true);
+            } catch (error) {
+              alert("Error al enviar la encuesta.");
+            }
+          };
+
+          const handleAdminLogin = (e) => {
+            e.preventDefault();
+            if (passwordInput === ADMIN_PASSWORD) {
+              setIsAdmin(true);
+              setPasswordInput('');
+            } else {
+              setPasswordInput('');
+              alert("Contraseña incorrecta");
+            }
+          };
+
+          if (firebaseError) {
+              return <div className="min-h-screen flex items-center justify-center p-6 text-center text-red-500 font-bold">Aún no has configurado Firebase o la clave es incorrecta. Sigue las instrucciones del Paso 3.</div>
+          }
+
+          if (isAuthLoading) {
+            return <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-[#15a892] font-bold text-xl"><div className="animate-pulse mb-4">Cargando Sistema...</div></div>;
+          }
+
+          return (
+            <div className="min-h-screen bg-gray-50 flex flex-col font-sans relative">
+              <header className="bg-white shadow-sm sticky top-0 z-10 rounded-b-3xl">
+                <div className="max-w-md mx-auto px-4 py-4 flex flex-col items-center">
+                  <img src={LOGO_URL} alt="Centro de día El Árbol" className="h-24 w-auto object-contain mb-2" onError={(e) => { e.target.style.display='none'; }}/>
+                  <h1 className="text-xl font-black text-[#15a892] tracking-wide text-center uppercase">
+                    Sust-Ansias<br/><span className="text-[#5c3a21]">Sin Filtro</span>
+                  </h1>
+                  <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-semibold">Jornada 2026</p>
+                </div>
+              </header>
+
+              <main className="flex-1 max-w-md w-full mx-auto p-4 overflow-y-auto pb-28">
+                
+                {/* --- FOTOS --- */}
+                {activeTab === 'photos' && (
+                  <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-3xl shadow-sm text-center border border-teal-50">
+                      <h2 className="text-lg font-bold text-gray-800 mb-2">¡Captura el momento!</h2>
+                      <p className="text-sm text-gray-600 mb-4">Sube tus fotos de la jornada para compartirlas con todos.</p>
+                      
+                      <input type="file" accept="image/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleImageUpload}/>
+                      <button onClick={() => fileInputRef.current.click()} disabled={isUploadingImage} className={`w-full py-3 px-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all ${isUploadingImage ? 'bg-gray-400' : 'bg-gradient-to-r from-[#15a892] to-[#2dd4bf] hover:opacity-90 active:scale-95'}`}>
+                        {isUploadingImage ? <span className="animate-pulse">Subiendo...</span> : <><Icons.Camera size={20} /> Subir Foto</>}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {photos.length === 0 ? (
+                        <div className="col-span-2 text-center py-10 text-gray-400 flex flex-col items-center">
+                          <Icons.Image size={48} className="mb-3 opacity-20" />
+                          <p>Aún no hay fotos. ¡Sé el primero!</p>
+                        </div>
+                      ) : (
+                        photos.map(photo => (
+                          <div key={photo.id} className="aspect-square bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group">
+                            <img src={photo.url} alt="Momento" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* --- ENCUESTA --- */}
+                {activeTab === 'survey' && (
+                  <div className="space-y-4">
+                    {hasSubmittedSurvey ? (
+                      <div className="bg-white p-8 rounded-3xl shadow-sm text-center border border-green-100 flex flex-col items-center">
+                        <Icons.Check size={64} className="text-[#22c55e] mb-4" />
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">¡Gracias por participar!</h2>
+                        <p className="text-gray-600">Tus respuestas nos ayudan a mejorar.</p>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSurveySubmit} className="space-y-6">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-teal-50">
+                          <h2 className="text-xl font-bold text-[#15a892] mb-1">Tu opinión importa</h2>
+                          <p className="text-sm text-gray-500 mb-6">Completa esta breve encuesta.</p>
+
+                          <div className="space-y-8">
+                            {SURVEY_QUESTIONS.map((q, index) => (
+                              <div key={q.id} className="space-y-3">
+                                <label className="block font-bold text-gray-800">
+                                  <span className="text-[#15a892] mr-2">{index + 1}.</span>{q.text}
+                                </label>
+                                <div className="flex flex-col gap-2">
+                                  {q.options.map(option => (
+                                    <button type="button" key={option} onClick={() => setCurrentAnswers({...currentAnswers, [q.id]: option})}
+                                      className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${
+                                        currentAnswers[q.id] === option ? 'border-[#15a892] bg-teal-50 font-bold text-[#15a892]' : 'border-gray-100 bg-gray-50 text-gray-700'
+                                      }`}>
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button type="submit" disabled={Object.keys(currentAnswers).length < SURVEY_QUESTIONS.length}
+                          className="w-full py-4 px-4 rounded-2xl font-bold text-white shadow-lg flex items-center justify-center gap-2 bg-gradient-to-r from-[#15a892] to-[#2dd4bf] disabled:opacity-50 disabled:cursor-not-allowed">
+                          <Icons.Send size={20} /> Enviar Respuestas
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                )}
+
+                {/* --- ADM --- */}
+                {activeTab === 'admin' && (
+                  <div className="space-y-6">
+                    {!isAdmin ? (
+                      <div className="bg-white p-8 rounded-3xl shadow-sm text-center border border-gray-100 max-w-sm mx-auto mt-10">
+                        <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Icons.Lock size={32} className="text-[#15a892]" strokeWidth="2"/>
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">Acceso Reservado</h2>
+                        <p className="text-sm text-gray-500 mb-6">Contraseña de administrador.</p>
+                        
+                        <form onSubmit={handleAdminLogin} className="space-y-4">
+                          <input type="password" placeholder="Contraseña" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#15a892] text-center font-bold" />
+                          <button type="submit" className="w-full py-3 px-4 rounded-xl font-bold text-white shadow-md bg-[#5c3a21] hover:bg-[#4a2e1a]">
+                            Ingresar
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="bg-gradient-to-r from-[#15a892] to-[#2dd4bf] p-6 rounded-3xl shadow-sm text-white flex justify-between items-center">
+                          <div>
+                            <h2 className="text-2xl font-black">Resultados</h2>
+                            <p className="opacity-90">{surveyAnswers.length} respuestas</p>
+                          </div>
+                          <Icons.Chart size={40} className="opacity-80" />
+                        </div>
+
+                        {SURVEY_QUESTIONS.map(q => {
+                          const counts = q.options.reduce((acc, opt) => { acc[opt] = 0; return acc; }, {});
+                          surveyAnswers.forEach(ans => {
+                            if (ans.answers && ans.answers[q.id]) counts[ans.answers[q.id]] = (counts[ans.answers[q.id]] || 0) + 1;
+                          });
+                          const chartData = q.options.map((opt, idx) => ({ label: opt, value: counts[opt] || 0, color: q.colors[idx % q.colors.length] }));
+                          return <PieChart key={q.id} title={q.text} data={chartData} />;
+                        })}
+                        
+                        <button onClick={() => setIsAdmin(false)} className="w-full py-3 text-gray-500 font-bold">Cerrar Sesión ADM</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </main>
+
+              <nav className="bg-white border-t border-gray-100 fixed bottom-0 w-full z-20 pb-2">
+                <div className="max-w-md mx-auto flex justify-around p-2">
+                  <button onClick={() => setActiveTab('photos')} className={`flex flex-col items-center p-3 rounded-2xl w-24 transition-all ${activeTab === 'photos' ? 'bg-teal-50 text-[#15a892]' : 'text-gray-400'}`}>
+                    <Icons.Camera size={24} strokeWidth={activeTab === 'photos' ? 2.5 : 2} />
+                    <span className="text-[10px] font-bold mt-1">Fotos</span>
+                  </button>
+                  <button onClick={() => setActiveTab('survey')} className={`flex flex-col items-center p-3 rounded-2xl w-24 transition-all ${activeTab === 'survey' ? 'bg-teal-50 text-[#15a892]' : 'text-gray-400'}`}>
+                    <Icons.Clipboard size={24} strokeWidth={activeTab === 'survey' ? 2.5 : 2} />
+                    <span className="text-[10px] font-bold mt-1">Encuesta</span>
+                  </button>
+                  <button onClick={() => setActiveTab('admin')} className={`flex flex-col items-center p-3 rounded-2xl w-24 transition-all ${activeTab === 'admin' ? 'bg-[#f8ebde] text-[#5c3a21]' : 'text-gray-400'}`}>
+                    <Icons.Lock size={24} strokeWidth={activeTab === 'admin' ? 2.5 : 2} />
+                    <span className="text-[10px] font-bold mt-1">ADM</span>
+                  </button>
+                </div>
+              </nav>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
