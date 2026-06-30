@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sust-Ansias Sin Filtro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FIREBASE VERSIÓN DIRECTA (Sin errores de módulos) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+    <!-- REACT -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,12 +19,10 @@
 <body class="bg-gray-50 antialiased text-gray-900">
     <div id="root"></div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        // TUS CLAVES REALES (Intactas y correctas)
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // TUS CLAVES REALES
         const firebaseConfig = {
             apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQuKHcurDIrU6204",
             authDomain: "el-arbol-2026.firebaseapp.com",
@@ -26,19 +31,13 @@
             messagingSenderId: "899394834604",
             appId: "1:899394834604:web:16585c60a0402987494f09"
         };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.firebaseAPI = {
-            auth, db, signInAnonymously, onAuthStateChanged, collection, addDoc, onSnapshot, query
-        };
-    </script>
-
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
         
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         const Icons = {
             Camera: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
             Clipboard: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>,
@@ -53,22 +52,10 @@
         const ADMIN_PASSWORD = "ARBOL26";
 
         const SURVEY_QUESTIONS = [
-          {
-            id: 'q1',
-            text: '¿Qué experiencias han tenido respecto al consumo de sust-ansias?'
-          },
-          {
-            id: 'q2',
-            text: 'Si consumen / consumieron algún tipo de sust-ansia, ¿consideran que tienen dependencia a esa sust-ansia?'
-          },
-          {
-            id: 'q3',
-            text: '¿Cuánto tiempo de uso de pantalla les figura en el celular?'
-          },
-          {
-            id: 'q4',
-            text: '¿A qué edad consideran brindarle un dispositivo digital a sus hijos?'
-          }
+          { id: 'q1', text: '¿Qué experiencias han tenido respecto al consumo de sust-ansias?' },
+          { id: 'q2', text: 'Si consumen / consumieron algún tipo de sust-ansia, ¿consideran que tienen dependencia a esa sust-ansia?' },
+          { id: 'q3', text: '¿Cuánto tiempo de uso de pantalla les figura en el celular?' },
+          { id: 'q4', text: '¿A qué edad consideran brindarle un dispositivo digital a sus hijos?' }
         ];
 
         function App() {
@@ -82,57 +69,45 @@
           
           const [isAdmin, setIsAdmin] = useState(false);
           const [passwordInput, setPasswordInput] = useState('');
-
           const [currentAnswers, setCurrentAnswers] = useState({});
           const [isUploadingImage, setIsUploadingImage] = useState(false);
+          const [errorMessage, setErrorMessage] = useState(null);
           
-          // NUEVO: Guardará el error exacto que envía Firebase
-          const [firebaseError, setFirebaseError] = useState(null); 
           const fileInputRef = useRef(null);
 
           useEffect(() => {
-            const timer = setInterval(() => {
-                if (window.firebaseAPI) {
-                    clearInterval(timer);
-                    initFirebase();
-                }
-            }, 100);
-            return () => clearInterval(timer);
+            const login = async () => {
+              try {
+                await auth.signInAnonymously();
+              } catch (err) {
+                setErrorMessage("Firebase bloqueó la conexión: " + err.message);
+                setIsAuthLoading(false);
+              }
+            };
+            login();
+
+            const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+              if (currentUser) {
+                setUser(currentUser);
+                loadData();
+              }
+              setIsAuthLoading(false);
+            });
+            return () => unsubscribe();
           }, []);
 
-          const initFirebase = async () => {
-            const fb = window.firebaseAPI;
-            try {
-              // Aquí es donde Firebase está bloqueando la entrada
-              await fb.signInAnonymously(fb.auth); 
-              fb.onAuthStateChanged(fb.auth, (currentUser) => {
-                setUser(currentUser);
-                setIsAuthLoading(false);
-                if (currentUser) loadData(fb, currentUser);
-              });
-            } catch (error) {
-              console.error("Error conectando a Firebase:", error);
-              // Guardamos el mensaje de error para mostrarlo en pantalla
-              setFirebaseError(error.message); 
-              setIsAuthLoading(false);
-            }
-          };
-
-          const loadData = (fb, currentUser) => {
-            const photosRef = fb.collection(fb.db, 'photos');
-            const surveyRef = fb.collection(fb.db, 'survey');
-
-            fb.onSnapshot(fb.query(photosRef), (snapshot) => {
+          const loadData = () => {
+            db.collection('photos').onSnapshot((snapshot) => {
               const photosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
               photosData.sort((a, b) => b.timestamp - a.timestamp);
               setPhotos(photosData);
-            }, (error) => console.log("Revisa permisos de Firestore para fotos"));
+            });
 
-            fb.onSnapshot(fb.query(surveyRef), (snapshot) => {
+            db.collection('survey').onSnapshot((snapshot) => {
               const answersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
               answersData.sort((a, b) => b.timestamp - a.timestamp); 
               setSurveyAnswers(answersData);
-            }, (error) => console.log("Revisa permisos de Firestore para encuestas"));
+            });
           };
 
           const handleImageUpload = (e) => {
@@ -156,15 +131,13 @@
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
                 
                 try {
-                  const fb = window.firebaseAPI;
-                  const photosRef = fb.collection(fb.db, 'photos');
-                  await fb.addDoc(photosRef, {
+                  await db.collection('photos').add({
                     url: compressedBase64,
                     timestamp: Date.now(),
                     userId: user.uid
                   });
                 } catch (error) {
-                  alert("Hubo un error al subir la foto.");
+                  alert("Error al subir foto: Revisa los permisos de Firebase.");
                 } finally {
                   setIsUploadingImage(false);
                   if (fileInputRef.current) fileInputRef.current.value = '';
@@ -179,21 +152,19 @@
             e.preventDefault();
             const hasAnyAnswer = Object.values(currentAnswers).some(val => val.trim() !== '');
             if (!hasAnyAnswer) {
-                alert("Por favor, responde al menos una pregunta.");
+                alert("Por favor, escribe al menos una respuesta.");
                 return;
             } 
 
             try {
-              const fb = window.firebaseAPI;
-              const surveyRef = fb.collection(fb.db, 'survey');
-              await fb.addDoc(surveyRef, {
+              await db.collection('survey').add({
                 answers: currentAnswers,
                 timestamp: Date.now(),
                 userId: user.uid
               });
               setHasSubmittedSurvey(true);
             } catch (error) {
-              alert("Error al enviar la encuesta.");
+              alert("Error al enviar: Revisa los permisos de Firebase.");
             }
           };
 
@@ -208,39 +179,24 @@
             }
           };
 
-          // PANTALLA INTELIGENTE DE ERRORES DE FIREBASE
-          if (firebaseError) {
-              return (
-                  <div className="min-h-screen flex items-center justify-center p-6 text-left flex-col bg-red-50">
-                      <div className="max-w-md w-full bg-white p-6 rounded-2xl shadow-lg border-2 border-red-200">
-                          <h2 className="text-red-600 font-black text-xl mb-4 text-center">¡Casi listo! El código está bien, pero Firebase bloqueó la conexión.</h2>
-                          
-                          <p className="text-gray-700 font-bold mb-2">Mensaje del guardia de Firebase:</p>
-                          <code className="block bg-red-100 p-3 rounded text-xs text-red-900 mb-6 border border-red-200 font-mono break-words">
-                              {firebaseError}
-                          </code>
-                          
-                          <div className="bg-yellow-50 p-4 rounded-xl text-sm border border-yellow-300 shadow-inner">
-                              <p className="font-bold mb-3 text-yellow-800 text-lg">¿Cómo solucionarlo en 1 minuto?</p>
-                              
-                              <p className="font-bold mt-2">Si el error dice "operation-not-allowed":</p>
-                              <ol className="list-decimal pl-5 space-y-1 mb-4 text-gray-700">
-                                  <li>Ve a tu consola de Firebase.</li>
-                                  <li>Menú izquierdo: <b>Autenticación</b> (Authentication).</li>
-                                  <li>Pestaña: <b>Sign-in method</b> (Método de inicio).</li>
-                                  <li>Busca <b>Anónimo</b>, actívalo y dale a Guardar.</li>
-                              </ol>
+          if (errorMessage) {
+            return (
+              <div className="min-h-screen flex items-center justify-center p-6 text-left flex-col bg-red-50">
+                  <div className="max-w-md w-full bg-white p-6 rounded-2xl shadow-lg border-2 border-red-200">
+                      <h2 className="text-red-600 font-black text-xl mb-4 text-center">Falta un paso en Firebase</h2>
+                      <p className="text-gray-700 text-sm mb-4">Para que la página no quede en blanco, ve a tu consola de Firebase y haz estas 2 cosas:</p>
+                      
+                      <ol className="list-decimal pl-5 space-y-3 text-sm text-gray-800 mb-6 font-semibold">
+                          <li>Ve a <b>Autenticación</b> > <b>Sign-in method</b> > Habilita <b>Anónimo</b> y Guarda.</li>
+                          <li>Ve a <b>Autenticación</b> > <b>Configuración</b> > <b>Dominios autorizados</b> > Agrega: <span className="text-blue-600 font-bold">elarbol-zeta.vercel.app</span></li>
+                      </ol>
 
-                              <p className="font-bold">Si el error dice "unauthorized-domain":</p>
-                              <ol className="list-decimal pl-5 space-y-1 text-gray-700">
-                                  <li>Ve a Firebase -> Autenticación.</li>
-                                  <li>Pestaña <b>Configuración</b> -> <b>Dominios autorizados</b>.</li>
-                                  <li>Clic en "Agregar dominio" y escribe: <br/><b className="text-blue-600">elarbol-zeta.vercel.app</b></li>
-                              </ol>
-                          </div>
-                      </div>
+                      <code className="block bg-gray-100 p-2 rounded text-xs text-gray-600 border border-gray-200 break-words">
+                          Error técnico: {errorMessage}
+                      </code>
                   </div>
-              )
+              </div>
+            );
           }
 
           if (isAuthLoading) {
