@@ -17,16 +17,15 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ⚠️⚠️⚠️ ¡PEGA TU FIREBASECONFIG AQUÍ ABAJO! ⚠️⚠️⚠️
+        // Configuración real de tu Firebase
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_PROYECTO.firebaseapp.com",
-            projectId: "TU_PROYECTO",
-            storageBucket: "TU_PROYECTO.appspot.com",
-            messagingSenderId: "TUS_NUMEROS",
-            appId: "TU_APP_ID"
+            apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQuKHcurDIrU6204",
+            authDomain: "el-arbol-2026.firebaseapp.com",
+            projectId: "el-arbol-2026",
+            storageBucket: "el-arbol-2026.firebasestorage.app",
+            messagingSenderId: "899394834604",
+            appId: "1:899394834604:web:16585c60a0402987494f09"
         };
-        // ⚠️⚠️⚠️ FIN DE LA CONFIGURACIÓN ⚠️⚠️⚠️
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -53,7 +52,6 @@
         const LOGO_URL = "logo.jpg"; 
         const ADMIN_PASSWORD = "ARBOL26";
 
-        // Nuevas preguntas de texto libre
         const SURVEY_QUESTIONS = [
           {
             id: 'q1',
@@ -128,7 +126,7 @@
 
             fb.onSnapshot(fb.query(surveyRef), (snapshot) => {
               const answersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              answersData.sort((a, b) => b.timestamp - a.timestamp); // Más recientes primero
+              answersData.sort((a, b) => b.timestamp - a.timestamp); 
               setSurveyAnswers(answersData);
             });
           };
@@ -175,7 +173,6 @@
 
           const handleSurveySubmit = async (e) => {
             e.preventDefault();
-            // Comprueba que al menos haya escrito en una pregunta
             const hasAnyAnswer = Object.values(currentAnswers).some(val => val.trim() !== '');
             if (!hasAnyAnswer) {
                 alert("Por favor, responde al menos una pregunta.");
@@ -208,7 +205,7 @@
           };
 
           if (firebaseError) {
-              return <div className="min-h-screen flex items-center justify-center p-6 text-center text-red-500 font-bold">Aún no has configurado Firebase o la clave es incorrecta.</div>
+              return <div className="min-h-screen flex items-center justify-center p-6 text-center text-red-500 font-bold">Aún no has configurado Firebase o la clave es incorrecta. Sigue las instrucciones y pega tu firebaseConfig real.</div>
           }
 
           if (isAuthLoading) {
@@ -331,7 +328,6 @@
                           <Icons.Message size={36} className="opacity-80" />
                         </div>
 
-                        {/* Recuadros por pregunta */}
                         {SURVEY_QUESTIONS.map((q, index) => {
                           const answersForThisQuestion = surveyAnswers
                             .map(ans => ans.answers && ans.answers[q.id])
