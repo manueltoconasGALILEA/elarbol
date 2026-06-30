@@ -5,24 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sust-Ansias Sin Filtro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FIREBASE VERSIÓN DIRECTA (Sin errores de módulos) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-
-    <!-- REACT -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-gray-50 antialiased text-gray-900">
-    <div id="root"></div>
+<body class="bg-gray-50 text-gray-900 font-sans pb-24">
+    <!-- CABECERA -->
+    <header class="bg-white shadow-sm sticky top-0 z-10 rounded-b-3xl">
+        <div class="max-w-md mx-auto px-4 py-4 flex flex-col items-center">
+            <img src="logo.jpg" alt="Logo" class="h-20 w-auto mb-2" onerror="this.style.display='none'">
+            <h1 class="text-xl font-black text-[#15a892] tracking-wide text-center uppercase leading-tight">
+                Sust-Ansias<br><span class="text-[#5c3a21]">Sin Filtro</span>
+            </h1>
+        </div>
+    </header>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        
-        // TUS CLAVES REALES
+    <main class="max-w-md mx-auto p-4">
+        <!-- SECCIÓN 1: FOTOS -->
+        <div id="tab-photos" class="space-y-6">
+            <div class="bg-white p-6 rounded-3xl shadow-sm text-center border border-teal-50">
+                <h2 class="text-lg font-bold mb-2">¡Captura el momento!</h2>
+                <input type="file" accept="image/*" id="fileInput" class="hidden">
+                <button onclick="document.getElementById('fileInput').click()" class="w-full py-4 px-4 rounded-xl font-bold text-white bg-[#15a892] shadow-lg active:bg-teal-700">
+                    Sacar o Subir Foto
+                </button>
+                <p id="upload-status" class="text-sm mt-3 font-bold text-[#15a892] hidden">Subiendo foto a la nube...</p>
+            </div>
+            <div id="photos-grid" class="grid grid-cols-2 gap-3">
+                <!-- Las fotos aparecerán aquí -->
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: ENCUESTA -->
+        <div id="tab-survey" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-teal-50" id="survey-form-container">
+                <h2 class="text-xl font-bold text-[#15a892] mb-4">Preguntas de la Radio</h2>
+                
+                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">1. ¿Qué experiencias han tenido respecto al consumo de sust-ansias?</label>
+                <textarea id="q1" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-4" rows="2"></textarea>
+
+                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">2. Si consumen / consumieron, ¿consideran que tienen dependencia a esa sust-ansia?</label>
+                <textarea id="q2" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-4" rows="2"></textarea>
+
+                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">3. ¿Cuánto tiempo de uso de pantalla les figura en el celular?</label>
+                <textarea id="q3" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-4" rows="2"></textarea>
+
+                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">4. ¿A qué edad consideran brindarle un dispositivo digital a sus hijos?</label>
+                <textarea id="q4" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-6" rows="2"></textarea>
+
+                <button id="submit-survey" class="w-full py-4 rounded-2xl font-bold text-white bg-[#15a892] shadow-lg">Enviar Respuestas</button>
+            </div>
+            <div id="survey-success" class="hidden bg-white p-8 rounded-3xl text-center shadow-sm border-2 border-green-400">
+                <h2 class="text-2xl font-bold text-green-500 mb-2">¡Guardado!</h2>
+                <p>Las respuestas se leerán en vivo.</p>
+                <button onclick="location.reload()" class="mt-4 text-[#15a892] font-bold underline">Enviar otra respuesta</button>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: ADM -->
+        <div id="tab-admin" class="hidden space-y-6">
+            <div id="admin-login" class="bg-white p-8 rounded-3xl shadow-sm text-center">
+                <h2 class="text-xl font-bold mb-4">Área de Lectura (Radio)</h2>
+                <input type="password" id="admin-pass" placeholder="Ingresa la contraseña" class="w-full p-3 rounded-xl border border-gray-200 mb-4 text-center">
+                <button id="btn-login" class="w-full py-3 rounded-xl font-bold text-white bg-[#5c3a21]">Ingresar</button>
+            </div>
+            <div id="admin-content" class="hidden space-y-4">
+                <div class="bg-[#15a892] p-4 rounded-xl text-white font-bold text-center">Respuestas Recibidas en Vivo</div>
+                <div id="answers-list" class="space-y-4">
+                    <!-- Respuestas de la gente -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BARRA INFERIOR (BOTONES) -->
+    <nav class="bg-white border-t border-gray-100 fixed bottom-0 w-full z-20 flex justify-around p-3 pb-6">
+        <button onclick="showTab('photos')" id="btn-tab-photos" class="font-bold text-[#15a892]">📸 Fotos</button>
+        <button onclick="showTab('survey')" id="btn-tab-survey" class="font-bold text-gray-400">📝 Preguntas</button>
+        <button onclick="showTab('admin')" id="btn-tab-admin" class="font-bold text-gray-400">🔒 ADM</button>
+    </nav>
+
+    <!-- EL MOTOR DE LA APLICACIÓN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // TUS CLAVES EXACTAS (NO TOCAR)
         const firebaseConfig = {
             apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQuKHcurDIrU6204",
             authDomain: "el-arbol-2026.firebaseapp.com",
@@ -31,349 +97,115 @@
             messagingSenderId: "899394834604",
             appId: "1:899394834604:web:16585c60a0402987494f09"
         };
-        
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
-        const db = firebase.firestore();
 
-        const Icons = {
-            Camera: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
-            Clipboard: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>,
-            Lock: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-            Image: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
-            Send: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>,
-            Message: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-            Check: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        signInAnonymously(auth).catch(error => {
+            alert("Para que lleguen los datos: Ve a Firebase -> Autenticación -> Pestaña 'Sign-in method' -> Activa 'Anónimo'.");
+        });
+
+        // Cambiar pestañas
+        window.showTab = (tabId) => {
+            document.getElementById('tab-photos').style.display = tabId === 'photos' ? 'block' : 'none';
+            document.getElementById('tab-survey').style.display = tabId === 'survey' ? 'block' : 'none';
+            document.getElementById('tab-admin').style.display = tabId === 'admin' ? 'block' : 'none';
+            
+            document.getElementById('btn-tab-photos').className = tabId === 'photos' ? 'font-bold text-[#15a892]' : 'font-bold text-gray-400';
+            document.getElementById('btn-tab-survey').className = tabId === 'survey' ? 'font-bold text-[#15a892]' : 'font-bold text-gray-400';
+            document.getElementById('btn-tab-admin').className = tabId === 'admin' ? 'font-bold text-[#5c3a21]' : 'font-bold text-gray-400';
         };
 
-        const LOGO_URL = "logo.jpg"; 
-        const ADMIN_PASSWORD = "ARBOL26";
-
-        const SURVEY_QUESTIONS = [
-          { id: 'q1', text: '¿Qué experiencias han tenido respecto al consumo de sust-ansias?' },
-          { id: 'q2', text: 'Si consumen / consumieron algún tipo de sust-ansia, ¿consideran que tienen dependencia a esa sust-ansia?' },
-          { id: 'q3', text: '¿Cuánto tiempo de uso de pantalla les figura en el celular?' },
-          { id: 'q4', text: '¿A qué edad consideran brindarle un dispositivo digital a sus hijos?' }
-        ];
-
-        function App() {
-          const [activeTab, setActiveTab] = useState('survey');
-          const [isAuthLoading, setIsAuthLoading] = useState(true);
-          const [user, setUser] = useState(null);
-          
-          const [photos, setPhotos] = useState([]);
-          const [surveyAnswers, setSurveyAnswers] = useState([]);
-          const [hasSubmittedSurvey, setHasSubmittedSurvey] = useState(false);
-          
-          const [isAdmin, setIsAdmin] = useState(false);
-          const [passwordInput, setPasswordInput] = useState('');
-          const [currentAnswers, setCurrentAnswers] = useState({});
-          const [isUploadingImage, setIsUploadingImage] = useState(false);
-          const [errorMessage, setErrorMessage] = useState(null);
-          
-          const fileInputRef = useRef(null);
-
-          useEffect(() => {
-            const login = async () => {
-              try {
-                await auth.signInAnonymously();
-              } catch (err) {
-                setErrorMessage("Firebase bloqueó la conexión: " + err.message);
-                setIsAuthLoading(false);
-              }
+        // Enviar Encuesta
+        document.getElementById('submit-survey').addEventListener('click', async () => {
+            const btn = document.getElementById('submit-survey');
+            btn.innerText = "Enviando...";
+            const ans = {
+                q1: document.getElementById('q1').value,
+                q2: document.getElementById('q2').value,
+                q3: document.getElementById('q3').value,
+                q4: document.getElementById('q4').value
             };
-            login();
+            try {
+                await addDoc(collection(db, 'survey'), { answers: ans, timestamp: Date.now() });
+                document.getElementById('survey-form-container').style.display = 'none';
+                document.getElementById('survey-success').style.display = 'block';
+            } catch(e) {
+                alert("Activa los permisos en la base de datos de Firebase.");
+                btn.innerText = "Enviar Respuestas";
+            }
+        });
 
-            const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-              if (currentUser) {
-                setUser(currentUser);
-                loadData();
-              }
-              setIsAuthLoading(false);
+        // Entrar a ADM
+        document.getElementById('btn-login').addEventListener('click', () => {
+            if(document.getElementById('admin-pass').value === 'ARBOL26') {
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+            } else {
+                alert('Contraseña incorrecta');
+            }
+        });
+
+        // Cargar respuestas de ADM en vivo
+        onSnapshot(collection(db, 'survey'), (snap) => {
+            const list = document.getElementById('answers-list');
+            list.innerHTML = '';
+            const allDocs = [];
+            snap.forEach(doc => allDocs.push(doc.data()));
+            allDocs.sort((a, b) => b.timestamp - a.timestamp); // Mas nuevas arriba
+
+            allDocs.forEach(dataObj => {
+                const data = dataObj.answers;
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-xl shadow-sm border-l-4 border-[#15a892] text-sm';
+                div.innerHTML = `
+                    ${data.q1 ? `<p class="mb-2"><b class="text-[#15a892]">1.</b> ${data.q1}</p>` : ''}
+                    ${data.q2 ? `<p class="mb-2"><b class="text-[#15a892]">2.</b> ${data.q2}</p>` : ''}
+                    ${data.q3 ? `<p class="mb-2"><b class="text-[#15a892]">3.</b> ${data.q3}</p>` : ''}
+                    ${data.q4 ? `<p><b class="text-[#15a892]">4.</b> ${data.q4}</p>` : ''}
+                `;
+                list.appendChild(div);
             });
-            return () => unsubscribe();
-          }, []);
+        });
 
-          const loadData = () => {
-            db.collection('photos').onSnapshot((snapshot) => {
-              const photosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              photosData.sort((a, b) => b.timestamp - a.timestamp);
-              setPhotos(photosData);
-            });
-
-            db.collection('survey').onSnapshot((snapshot) => {
-              const answersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              answersData.sort((a, b) => b.timestamp - a.timestamp); 
-              setSurveyAnswers(answersData);
-            });
-          };
-
-          const handleImageUpload = (e) => {
+        // Subir y mostrar Fotos
+        document.getElementById('fileInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (!file) return;
-
-            setIsUploadingImage(true);
+            if(!file) return;
+            document.getElementById('upload-status').style.display = 'block';
             const reader = new FileReader();
             reader.onload = (event) => {
-              const img = new Image();
-              img.onload = async () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; 
-                let scaleSize = 1;
-                if (img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
-                canvas.width = img.width * scaleSize;
-                canvas.height = img.height * scaleSize;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                
-                try {
-                  await db.collection('photos').add({
-                    url: compressedBase64,
-                    timestamp: Date.now(),
-                    userId: user.uid
-                  });
-                } catch (error) {
-                  alert("Error al subir foto: Revisa los permisos de Firebase.");
-                } finally {
-                  setIsUploadingImage(false);
-                  if (fileInputRef.current) fileInputRef.current.value = '';
-                }
-              };
-              img.src = event.target.result;
+                const img = new Image();
+                img.onload = async () => {
+                    const canvas = document.createElement('canvas');
+                    const scale = img.width > 600 ? 600 / img.width : 1;
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    try {
+                        await addDoc(collection(db, 'photos'), { url: canvas.toDataURL('image/jpeg', 0.6), timestamp: Date.now() });
+                    } catch(err) {}
+                    document.getElementById('upload-status').style.display = 'none';
+                };
+                img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-          };
+        });
 
-          const handleSurveySubmit = async (e) => {
-            e.preventDefault();
-            const hasAnyAnswer = Object.values(currentAnswers).some(val => val.trim() !== '');
-            if (!hasAnyAnswer) {
-                alert("Por favor, escribe al menos una respuesta.");
-                return;
-            } 
-
-            try {
-              await db.collection('survey').add({
-                answers: currentAnswers,
-                timestamp: Date.now(),
-                userId: user.uid
-              });
-              setHasSubmittedSurvey(true);
-            } catch (error) {
-              alert("Error al enviar: Revisa los permisos de Firebase.");
-            }
-          };
-
-          const handleAdminLogin = (e) => {
-            e.preventDefault();
-            if (passwordInput === ADMIN_PASSWORD) {
-              setIsAdmin(true);
-              setPasswordInput('');
-            } else {
-              setPasswordInput('');
-              alert("Contraseña incorrecta");
-            }
-          };
-
-          if (errorMessage) {
-            return (
-              <div className="min-h-screen flex items-center justify-center p-6 text-left flex-col bg-red-50">
-                  <div className="max-w-md w-full bg-white p-6 rounded-2xl shadow-lg border-2 border-red-200">
-                      <h2 className="text-red-600 font-black text-xl mb-4 text-center">Falta un paso en Firebase</h2>
-                      <p className="text-gray-700 text-sm mb-4">Para que la página no quede en blanco, ve a tu consola de Firebase y haz estas 2 cosas:</p>
-                      
-                      <ol className="list-decimal pl-5 space-y-3 text-sm text-gray-800 mb-6 font-semibold">
-                          <li>Ve a <b>Autenticación</b> > <b>Sign-in method</b> > Habilita <b>Anónimo</b> y Guarda.</li>
-                          <li>Ve a <b>Autenticación</b> > <b>Configuración</b> > <b>Dominios autorizados</b> > Agrega: <span className="text-blue-600 font-bold">elarbol-zeta.vercel.app</span></li>
-                      </ol>
-
-                      <code className="block bg-gray-100 p-2 rounded text-xs text-gray-600 border border-gray-200 break-words">
-                          Error técnico: {errorMessage}
-                      </code>
-                  </div>
-              </div>
-            );
-          }
-
-          if (isAuthLoading) {
-            return <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-[#15a892] font-bold text-xl"><div className="animate-pulse mb-4">Cargando Sistema...</div></div>;
-          }
-
-          return (
-            <div className="min-h-screen bg-gray-50 flex flex-col font-sans relative">
-              <header className="bg-white shadow-sm sticky top-0 z-10 rounded-b-3xl">
-                <div className="max-w-md mx-auto px-4 py-4 flex flex-col items-center">
-                  <img src={LOGO_URL} alt="Centro de día El Árbol" className="h-20 w-auto object-contain mb-2" onError={(e) => { e.target.style.display='none'; }}/>
-                  <h1 className="text-xl font-black text-[#15a892] tracking-wide text-center uppercase leading-tight">
-                    Sust-Ansias<br/><span className="text-[#5c3a21]">Sin Filtro</span>
-                  </h1>
-                </div>
-              </header>
-
-              <main className="flex-1 max-w-md w-full mx-auto p-4 overflow-y-auto pb-28">
-                
-                {/* --- FOTOS --- */}
-                {activeTab === 'photos' && (
-                  <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-3xl shadow-sm text-center border border-teal-50">
-                      <h2 className="text-lg font-bold text-gray-800 mb-2">¡Captura el momento!</h2>
-                      <p className="text-sm text-gray-600 mb-4">Sube tus fotos de la jornada.</p>
-                      
-                      <input type="file" accept="image/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleImageUpload}/>
-                      <button onClick={() => fileInputRef.current.click()} disabled={isUploadingImage} className={`w-full py-3 px-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all ${isUploadingImage ? 'bg-gray-400' : 'bg-gradient-to-r from-[#15a892] to-[#2dd4bf] hover:opacity-90 active:scale-95'}`}>
-                        {isUploadingImage ? <span className="animate-pulse">Subiendo...</span> : <><Icons.Camera size={20} /> Subir Foto</>}
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      {photos.length === 0 ? (
-                        <div className="col-span-2 text-center py-10 text-gray-400 flex flex-col items-center">
-                          <Icons.Image size={48} className="mb-3 opacity-20" />
-                          <p>Aún no hay fotos.</p>
-                        </div>
-                      ) : (
-                        photos.map(photo => (
-                          <div key={photo.id} className="aspect-square bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group">
-                            <img src={photo.url} alt="Momento" className="w-full h-full object-cover" />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* --- ENCUESTA --- */}
-                {activeTab === 'survey' && (
-                  <div className="space-y-4">
-                    {hasSubmittedSurvey ? (
-                      <div className="bg-white p-8 rounded-3xl shadow-sm text-center border border-green-100 flex flex-col items-center">
-                        <Icons.Check size={64} className="text-[#22c55e] mb-4" />
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">¡Gracias por participar!</h2>
-                        <p className="text-gray-600">Tus respuestas serán leídas en el próximo bloque.</p>
-                        <button onClick={() => { setHasSubmittedSurvey(false); setCurrentAnswers({}); }} className="mt-6 text-[#15a892] font-bold underline">
-                          Enviar otra respuesta
-                        </button>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSurveySubmit} className="space-y-6">
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-teal-50">
-                          <h2 className="text-xl font-bold text-[#15a892] mb-1">Tu opinión importa</h2>
-                          <p className="text-sm text-gray-500 mb-6">Completa estas preguntas para debatir en la radio.</p>
-
-                          <div className="space-y-6">
-                            {SURVEY_QUESTIONS.map((q, index) => (
-                              <div key={q.id} className="space-y-2">
-                                <label className="block font-bold text-gray-800 leading-tight">
-                                  <span className="text-[#15a892] mr-2">{index + 1}.</span>{q.text}
-                                </label>
-                                <textarea 
-                                  className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#15a892] focus:ring-1 focus:ring-[#15a892] outline-none transition-all text-sm"
-                                  rows="3"
-                                  placeholder="Escribe tu respuesta aquí..."
-                                  value={currentAnswers[q.id] || ''}
-                                  onChange={(e) => setCurrentAnswers({...currentAnswers, [q.id]: e.target.value})}
-                                ></textarea>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <button type="submit" className="w-full py-4 px-4 rounded-2xl font-bold text-white shadow-lg flex items-center justify-center gap-2 bg-gradient-to-r from-[#15a892] to-[#2dd4bf]">
-                          <Icons.Send size={20} /> Enviar Respuestas
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                )}
-
-                {/* --- ADM (LECTURA DE RESPUESTAS) --- */}
-                {activeTab === 'admin' && (
-                  <div className="space-y-6">
-                    {!isAdmin ? (
-                      <div className="bg-white p-8 rounded-3xl shadow-sm text-center border border-gray-100 max-w-sm mx-auto mt-10">
-                        <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Icons.Lock size={32} className="text-[#15a892]" strokeWidth="2"/>
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">Acceso a Lectura</h2>
-                        <p className="text-sm text-gray-500 mb-6">Para uso de la radio abierta.</p>
-                        
-                        <form onSubmit={handleAdminLogin} className="space-y-4">
-                          <input type="password" placeholder="Contraseña" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#15a892] text-center font-bold" />
-                          <button type="submit" className="w-full py-3 px-4 rounded-xl font-bold text-white shadow-md bg-[#5c3a21] hover:bg-[#4a2e1a]">
-                            Ingresar
-                          </button>
-                        </form>
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div className="bg-gradient-to-r from-[#15a892] to-[#2dd4bf] p-5 rounded-3xl shadow-sm text-white flex justify-between items-center">
-                          <div>
-                            <h2 className="text-xl font-black">Respuestas Recibidas</h2>
-                            <p className="opacity-90 text-sm">Total participaciones: {surveyAnswers.length}</p>
-                          </div>
-                          <Icons.Message size={36} className="opacity-80" />
-                        </div>
-
-                        {SURVEY_QUESTIONS.map((q, index) => {
-                          const answersForThisQuestion = surveyAnswers
-                            .map(ans => ans.answers && ans.answers[q.id])
-                            .filter(text => text && text.trim() !== '');
-
-                          return (
-                            <div key={q.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-                              <h3 className="font-bold text-[#5c3a21] mb-3 leading-tight border-b pb-2">
-                                <span className="text-[#15a892] mr-1">{index + 1}.</span> {q.text}
-                              </h3>
-                              
-                              <div className="space-y-3 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
-                                {answersForThisQuestion.length > 0 ? (
-                                  answersForThisQuestion.map((text, idx) => (
-                                    <div key={idx} className="bg-teal-50/50 p-3 rounded-xl text-gray-700 text-sm border-l-4 border-[#15a892]">
-                                      {text}
-                                    </div>
-                                  ))
-                                ) : (
-                                  <p className="text-gray-400 italic text-sm text-center py-4">Aún nadie respondió esta pregunta.</p>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                        
-                        <button onClick={() => setIsAdmin(false)} className="w-full py-3 text-gray-500 font-bold bg-white rounded-xl shadow-sm">Cerrar Sesión ADM</button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </main>
-
-              <nav className="bg-white border-t border-gray-100 fixed bottom-0 w-full z-20 pb-2">
-                <div className="max-w-md mx-auto flex justify-around p-2">
-                  <button onClick={() => setActiveTab('photos')} className={`flex flex-col items-center p-3 rounded-2xl w-24 transition-all ${activeTab === 'photos' ? 'bg-teal-50 text-[#15a892]' : 'text-gray-400'}`}>
-                    <Icons.Camera size={24} strokeWidth={activeTab === 'photos' ? 2.5 : 2} />
-                    <span className="text-[10px] font-bold mt-1">Fotos</span>
-                  </button>
-                  <button onClick={() => setActiveTab('survey')} className={`flex flex-col items-center p-3 rounded-2xl w-24 transition-all ${activeTab === 'survey' ? 'bg-teal-50 text-[#15a892]' : 'text-gray-400'}`}>
-                    <Icons.Clipboard size={24} strokeWidth={activeTab === 'survey' ? 2.5 : 2} />
-                    <span className="text-[10px] font-bold mt-1">Preguntas</span>
-                  </button>
-                  <button onClick={() => setActiveTab('admin')} className={`flex flex-col items-center p-3 rounded-2xl w-24 transition-all ${activeTab === 'admin' ? 'bg-[#f8ebde] text-[#5c3a21]' : 'text-gray-400'}`}>
-                    <Icons.Lock size={24} strokeWidth={activeTab === 'admin' ? 2.5 : 2} />
-                    <span className="text-[10px] font-bold mt-1">ADM</span>
-                  </button>
-                </div>
-              </nav>
-            </div>
-          );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        onSnapshot(collection(db, 'photos'), (snap) => {
+            const grid = document.getElementById('photos-grid');
+            grid.innerHTML = '';
+            const allPhotos = [];
+            snap.forEach(doc => allPhotos.push(doc.data()));
+            allPhotos.sort((a, b) => b.timestamp - a.timestamp);
+            allPhotos.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'aspect-square bg-gray-200 rounded-2xl overflow-hidden';
+                div.innerHTML = `<img src="${p.url}" class="w-full h-full object-cover">`;
+                grid.appendChild(div);
+            });
+        });
     </script>
 </body>
 </html>
