@@ -2,50 +2,42 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Diagnóstico Sust-Ansias</title>
+    <title>Sust-Ansias Sin Filtro</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
-    <div id="diagnostico" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-lg">
-        <h1 class="text-xl font-bold mb-4">Diagnosticando...</h1>
-        <div id="status" class="p-4 bg-yellow-100 border border-yellow-300 rounded-lg text-sm"></div>
+    <div id="app" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-lg">
+        <h1 class="text-xl font-bold text-center mb-4">Cargando aplicación...</h1>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // --- PEGA AQUÍ TU BLOQUE DE FIREBASE CONFIG ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQuKHcurDIrU6204",
+            apiKey: "AQUÍ_VA_TU_API_KEY_REAL",
             authDomain: "el-arbol-2026.firebaseapp.com",
             projectId: "el-arbol-2026",
             storageBucket: "el-arbol-2026.firebasestorage.app",
             messagingSenderId: "899394834604",
             appId: "1:899394834604:web:16585c60a0402987494f09"
         };
+        // ----------------------------------------------
 
-        const statusDiv = document.getElementById('status');
-        
-        async function test() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
-                const db = getFirestore(app);
-                
-                statusDiv.innerHTML = "1. Intentando entrar (Autenticación)...";
-                await signInAnonymously(auth);
-                statusDiv.innerHTML += "<br>✅ Autenticación OK.";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-                statusDiv.innerHTML += "<br>2. Intentando escribir en Firestore...";
-                await addDoc(collection(db, 'survey_v2'), { test: "prueba" });
-                statusDiv.innerHTML += "<br>✅ Escribir en base de datos OK. ¡LA APP DEBERÍA FUNCIONAR!";
-            } catch (error) {
-                statusDiv.innerHTML += `<br><br>❌ ERROR DETECTADO:<br><b class="text-red-600">${error.message}</b>`;
-                statusDiv.className = "p-4 bg-red-100 border border-red-300 rounded-lg text-sm";
-            }
-        }
-        test();
+        signInAnonymously(auth).then(() => {
+            document.getElementById('app').innerHTML = `
+                <h1 class="text-xl font-bold text-center text-[#15a892] mb-4">Sust-Ansias Funciona</h1>
+                <p class="text-center text-green-600 font-bold">¡La conexión es correcta!</p>
+            `;
+        }).catch(e => {
+            document.getElementById('app').innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
+        });
     </script>
 </body>
 </html>
