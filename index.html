@@ -14,8 +14,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQuKHcurDIrU6204",
@@ -25,15 +25,41 @@
             messagingSenderId: "899394834604",
             appId: "1:899394834604:web:16585c60a0402987494f09"
         };
+
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.auth = getAuth(app);
-        window.fs = { collection, addDoc, onSnapshot };
+        window.fs = { collection, addDoc, onSnapshot, query, orderBy };
         signInAnonymously(window.auth);
     </script>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
+
+        function PieChart({ data, title }) {
+            const total = data.reduce((a, b) => a + b.value, 0);
+            let offset = 0;
+            return (
+                <div className="bg-white p-4 rounded-xl shadow-sm my-4 border">
+                    <h3 className="font-bold text-[#15a892] mb-4 text-center">{title}</h3>
+                    <div className="flex justify-center">
+                        <svg width="150" height="150" viewBox="-1 -1 2 2" className="rotate-[-90deg]">
+                            {data.map((slice, i) => {
+                                if (total === 0) return null;
+                                const angle = (slice.value / total) * 2 * Math.PI;
+                                const x = Math.cos(offset);
+                                const y = Math.sin(offset);
+                                offset += angle;
+                                return <path key={i} d={`M 0 0 L ${x} ${y} A 1 1 0 ${angle > Math.PI ? 1 : 0} 1 ${Math.cos(offset)} ${Math.sin(offset)} Z`} fill={slice.color} />;
+                            })}
+                        </svg>
+                    </div>
+                    <div className="mt-4 grid grid-cols-1 gap-2">
+                        {data.map((s, i) => <div key={i} className="text-xs flex justify-between"><span>{s.label}</span><span className="font-bold">{total ? Math.round((s.value/total)*100) : 0}%</span></div>)}
+                    </div>
+                </div>
+            );
+        }
 
         function App() {
             const [showIntro, setShowIntro] = useState(true);
@@ -45,17 +71,20 @@
             const [pass, setPass] = useState('');
 
             useEffect(() => {
-                setTimeout(() => setShowIntro(false), 3000);
-                window.fs.onSnapshot(window.fs.collection(window.db, 'survey_v2'), (snap) => {
+                const timer = setTimeout(() => setShowIntro(false), 3000);
+                const q = window.fs.query(window.fs.collection(window.db, 'survey_v2'), window.fs.orderBy('timestamp', 'desc'));
+                window.fs.onSnapshot(q, (snap) => {
                     const data = [];
                     snap.forEach(d => data.push(d.data().answers));
                     setSurveyAnswers(data);
                 });
+                return () => clearTimeout(timer);
             }, []);
 
             if (showIntro) return <div className="h-screen flex items-center justify-center bg-white"><img src="INTRO.jpeg" className="w-full max-w-sm" /></div>;
 
             const submit = async () => {
+                if(!formData.q2 || !formData.q3 || !formData.q4) return alert("Completa las opciones!");
                 await window.fs.addDoc(window.fs.collection(window.db, 'survey_v2'), { answers: formData, timestamp: Date.now() });
                 setSubmitted(true);
             };
@@ -63,37 +92,44 @@
             const getCount = (q, opt) => surveyAnswers.filter(a => a[q] === opt).length;
 
             return (
-                <div className="max-w-md mx-auto p-4 pb-20">
-                    <header className="text-center mb-6"><h1 className="text-2xl font-black text-[#15a892]">SUST-ANSIAS SIN FILTRO</h1></header>
+                <div className="max-w-md mx-auto p-4 pb-24 bg-gray-50 min-h-screen">
+                    <header className="text-center mb-6"><h1 className="text-2xl font-black text-[#15a892]">SUST-ANSIAS</h1><h2 className="font-bold text-[#5c3a21]">SIN FILTRO</h2></header>
                     
                     {activeTab === 'survey' ? (
-                        submitted ? <div className="text-center p-10 font-bold text-[#15a892]">¡Gracias por participar!</div> :
-                        <div className="space-y-4">
-                            <label className="block font-bold">1. Experiencias:</label>
-                            <textarea className="w-full border p-2 rounded" onChange={e => setFormData({...formData, q1: e.target.value})}></textarea>
+                        submitted ? <div className="text-center p-10 font-bold text-[#15a892] bg-white rounded-2xl border">¡Gracias por participar!</div> :
+                        <div className="space-y-6">
+                            <label className="block font-bold">1. Experiencias de consumo:</label>
+                            <textarea className="w-full border p-3 rounded-xl" onChange={e => setFormData({...formData, q1: e.target.value})}></textarea>
                             
-                            <label className="block font-bold">2. ¿Consideras que tienes dependencia?</label>
-                            {['SÍ', 'NO', 'HE TENIDO DEPENDENCIA ALGUNA VEZ', 'NUNCA LO HE PENSADO'].map(o => <button key={o} onClick={() => setFormData({...formData, q2: o})} className={`block w-full p-2 border my-1 ${formData.q2 === o ? 'bg-[#15a892] text-white' : ''}`}>{o}</button>)}
+                            <label className="block font-bold">2. ¿Tienes dependencia?</label>
+                            {['SÍ', 'NO', 'HE TENIDO DEPENDENCIA ALGUNA VEZ', 'NUNCA LO HE PENSADO'].map(o => <button key={o} onClick={() => setFormData({...formData, q2: o})} className={`block w-full p-2 border-2 rounded-lg my-1 ${formData.q2 === o ? 'bg-[#15a892] text-white border-[#15a892]' : 'bg-white'}`}>{o}</button>)}
 
                             <label className="block font-bold">3. Tiempo de pantalla:</label>
-                            {['+ de 2hs', '+ de 3hs', '+ de 5 hs', '+ de 6hs', '+ mas de 7hs', '+ de 9hs', '+ 10hs', '+ de 10hs', '+ de 14hs'].map(o => <button key={o} onClick={() => setFormData({...formData, q3: o})} className={`block w-full p-2 border my-1 ${formData.q3 === o ? 'bg-[#15a892] text-white' : ''}`}>{o}</button>)}
+                            {['+ de 2hs', '+ de 3hs', '+ de 5 hs', '+ de 6hs', '+ mas de 7hs', '+ de 9hs', '+ 10hs', '+ de 10hs', '+ de 14hs'].map(o => <button key={o} onClick={() => setFormData({...formData, q3: o})} className={`block w-full p-2 border-2 rounded-lg my-1 ${formData.q3 === o ? 'bg-[#15a892] text-white border-[#15a892]' : 'bg-white'}`}>{o}</button>)}
                             
-                            <label className="block font-bold">4. Edad brindarle dispositivo (1-18 años):</label>
-                            <select className="w-full p-2 border" onChange={e => setFormData({...formData, q4: e.target.value})}>{Array.from({length:18},(_,i)=>i+1).map(i=><option key={i} value={i+' AÑO'}>{i} AÑO</option>)}</select>
+                            <label className="block font-bold">4. Edad dispositivo:</label>
+                            <select className="w-full p-3 border-2 rounded-lg" onChange={e => setFormData({...formData, q4: e.target.value})}>
+                                <option value="">Selecciona edad...</option>
+                                {Array.from({length:18},(_,i)=>i+1).map(i=><option key={i} value={i+' AÑOS'}>{i} AÑOS</option>)}
+                            </select>
 
-                            <button onClick={submit} className="w-full py-4 bg-[#15a892] text-white font-bold rounded-xl mt-4">ENVIAR</button>
+                            <button onClick={submit} className="w-full py-4 bg-[#15a892] text-white font-bold rounded-xl mt-4 shadow-lg">ENVIAR ENCUESTA</button>
                         </div>
                     ) : (
-                        !isAdmin ? <div className="space-y-4"><input type="password" onChange={e=>setPass(e.target.value)} className="w-full p-2 border" /><button onClick={()=>pass==='ARBOL26' && setIsAdmin(true)} className="w-full bg-[#5c3a21] text-white p-2">INGRESAR</button></div> :
-                        <div>
-                            <h2 className="font-bold">Respuestas Q1:</h2>{surveyAnswers.map((a,i)=><p key={i} className="border-b p-1">{a.q1}</p>)}
-                            {['q2','q3','q4'].map(q => <div key={q} className="my-4 p-4 bg-gray-100"><h3 className="font-bold">{q}</h3>{['Opcion1','Opcion2'].map(o=><p key={o}>{o}: {getCount(q,o)}</p>)}</div>)}
+                        !isAdmin ? <div className="space-y-4 bg-white p-6 rounded-2xl border"><input type="password" placeholder="Contraseña ADM" onChange={e=>setPass(e.target.value)} className="w-full p-3 border rounded-xl" /><button onClick={()=>pass==='ARBOL26' && setIsAdmin(true)} className="w-full bg-[#5c3a21] text-white p-3 rounded-xl font-bold">INGRESAR</button></div> :
+                        <div className="pb-10">
+                            <h2 className="font-bold text-xl mb-4">Respuestas Q1 (Texto):</h2>
+                            <div className="bg-white p-4 rounded-xl border mb-6 max-h-60 overflow-y-auto">{surveyAnswers.map((a,i)=><p key={i} className="border-b p-2 text-sm">{a.q1}</p>)}</div>
+                            
+                            <PieChart title="2. ¿Tienes dependencia?" data={['SÍ', 'NO', 'HE TENIDO DEPENDENCIA ALGUNA VEZ', 'NUNCA LO HE PENSADO'].map((o,i)=>({label:o, value:getCount('q2',o), color:['#15a892','#5c3a21','#fbbf24','#ef4444'][i]}))} />
+                            <PieChart title="3. Tiempo de pantalla" data={['+ de 2hs', '+ de 3hs', '+ de 5 hs', '+ de 6hs', '+ mas de 7hs', '+ de 9hs', '+ 10hs', '+ de 10hs', '+ de 14hs'].map((o,i)=>({label:o, value:getCount('q3',o), color:i%2===0?'#15a892':'#5c3a21'}))} />
+                            <PieChart title="4. Edad dispositivo" data={Array.from({length:18},(_,i)=>i+1+' AÑOS').map((o,i)=>({label:o, value:getCount('q4',o), color:i%2===0?'#15a892':'#5c3a21'}))} />
                         </div>
                     )}
                     
-                    <nav className="fixed bottom-0 w-full bg-white p-4 flex justify-around border-t">
-                        <button onClick={() => setActiveTab('survey')} className="font-bold">PREGUNTAS</button>
-                        <button onClick={() => setActiveTab('admin')} className="font-bold">ADM</button>
+                    <nav className="fixed bottom-0 w-full bg-white p-4 flex justify-around border-t shadow-lg">
+                        <button onClick={() => setActiveTab('survey')} className={`font-bold ${activeTab==='survey'?'text-[#15a892]':'text-gray-400'}`}>PREGUNTAS</button>
+                        <button onClick={() => setActiveTab('admin')} className={`font-bold ${activeTab==='admin'?'text-[#5c3a21]':'text-gray-400'}`}>ADM</button>
                     </nav>
                 </div>
             );
