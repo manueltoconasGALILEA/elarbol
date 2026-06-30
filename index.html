@@ -17,7 +17,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Configuración real de tu Firebase
+        // TUS CLAVES REALES (Intactas y correctas)
         const firebaseConfig = {
             apiKey: "AIzaSyAeYRFbSnUUcqyB5_aUQuKHcurDIrU6204",
             authDomain: "el-arbol-2026.firebaseapp.com",
@@ -85,7 +85,9 @@
 
           const [currentAnswers, setCurrentAnswers] = useState({});
           const [isUploadingImage, setIsUploadingImage] = useState(false);
-          const [firebaseError, setFirebaseError] = useState(false);
+          
+          // NUEVO: Guardará el error exacto que envía Firebase
+          const [firebaseError, setFirebaseError] = useState(null); 
           const fileInputRef = useRef(null);
 
           useEffect(() => {
@@ -101,7 +103,8 @@
           const initFirebase = async () => {
             const fb = window.firebaseAPI;
             try {
-              await fb.signInAnonymously(fb.auth);
+              // Aquí es donde Firebase está bloqueando la entrada
+              await fb.signInAnonymously(fb.auth); 
               fb.onAuthStateChanged(fb.auth, (currentUser) => {
                 setUser(currentUser);
                 setIsAuthLoading(false);
@@ -109,7 +112,8 @@
               });
             } catch (error) {
               console.error("Error conectando a Firebase:", error);
-              setFirebaseError(true);
+              // Guardamos el mensaje de error para mostrarlo en pantalla
+              setFirebaseError(error.message); 
               setIsAuthLoading(false);
             }
           };
@@ -122,13 +126,13 @@
               const photosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
               photosData.sort((a, b) => b.timestamp - a.timestamp);
               setPhotos(photosData);
-            }, (error) => console.log("Revisa permisos de fotos"));
+            }, (error) => console.log("Revisa permisos de Firestore para fotos"));
 
             fb.onSnapshot(fb.query(surveyRef), (snapshot) => {
               const answersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
               answersData.sort((a, b) => b.timestamp - a.timestamp); 
               setSurveyAnswers(answersData);
-            });
+            }, (error) => console.log("Revisa permisos de Firestore para encuestas"));
           };
 
           const handleImageUpload = (e) => {
@@ -204,8 +208,39 @@
             }
           };
 
+          // PANTALLA INTELIGENTE DE ERRORES DE FIREBASE
           if (firebaseError) {
-              return <div className="min-h-screen flex items-center justify-center p-6 text-center text-red-500 font-bold">Aún no has configurado Firebase o la clave es incorrecta. Sigue las instrucciones y pega tu firebaseConfig real.</div>
+              return (
+                  <div className="min-h-screen flex items-center justify-center p-6 text-left flex-col bg-red-50">
+                      <div className="max-w-md w-full bg-white p-6 rounded-2xl shadow-lg border-2 border-red-200">
+                          <h2 className="text-red-600 font-black text-xl mb-4 text-center">¡Casi listo! El código está bien, pero Firebase bloqueó la conexión.</h2>
+                          
+                          <p className="text-gray-700 font-bold mb-2">Mensaje del guardia de Firebase:</p>
+                          <code className="block bg-red-100 p-3 rounded text-xs text-red-900 mb-6 border border-red-200 font-mono break-words">
+                              {firebaseError}
+                          </code>
+                          
+                          <div className="bg-yellow-50 p-4 rounded-xl text-sm border border-yellow-300 shadow-inner">
+                              <p className="font-bold mb-3 text-yellow-800 text-lg">¿Cómo solucionarlo en 1 minuto?</p>
+                              
+                              <p className="font-bold mt-2">Si el error dice "operation-not-allowed":</p>
+                              <ol className="list-decimal pl-5 space-y-1 mb-4 text-gray-700">
+                                  <li>Ve a tu consola de Firebase.</li>
+                                  <li>Menú izquierdo: <b>Autenticación</b> (Authentication).</li>
+                                  <li>Pestaña: <b>Sign-in method</b> (Método de inicio).</li>
+                                  <li>Busca <b>Anónimo</b>, actívalo y dale a Guardar.</li>
+                              </ol>
+
+                              <p className="font-bold">Si el error dice "unauthorized-domain":</p>
+                              <ol className="list-decimal pl-5 space-y-1 text-gray-700">
+                                  <li>Ve a Firebase -> Autenticación.</li>
+                                  <li>Pestaña <b>Configuración</b> -> <b>Dominios autorizados</b>.</li>
+                                  <li>Clic en "Agregar dominio" y escribe: <br/><b className="text-blue-600">elarbol-zeta.vercel.app</b></li>
+                              </ol>
+                          </div>
+                      </div>
+                  </div>
+              )
           }
 
           if (isAuthLoading) {
