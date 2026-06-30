@@ -4,89 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sust-Ansias Sin Filtro</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* Estilos para ocultar la barra de scroll en las respuestas leidas */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #15a892; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0e8674; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans pb-24">
-    <!-- CABECERA -->
-    <header class="bg-white shadow-sm sticky top-0 z-10 rounded-b-3xl">
-        <div class="max-w-md mx-auto px-4 py-4 flex flex-col items-center">
-            <img src="logo.jpg" alt="Logo" class="h-20 w-auto mb-2" onerror="this.style.display='none'">
-            <h1 class="text-xl font-black text-[#15a892] tracking-wide text-center uppercase leading-tight">
-                Sust-Ansias<br><span class="text-[#5c3a21]">Sin Filtro</span>
-            </h1>
-        </div>
-    </header>
+<body class="bg-gray-50 antialiased text-gray-900">
+    <div id="root"></div>
 
-    <main class="max-w-md mx-auto p-4">
-        <!-- SECCIÓN 1: FOTOS -->
-        <div id="tab-photos" class="space-y-6">
-            <div class="bg-white p-6 rounded-3xl shadow-sm text-center border border-teal-50">
-                <h2 class="text-lg font-bold mb-2">¡Captura el momento!</h2>
-                <input type="file" accept="image/*" id="fileInput" class="hidden">
-                <button onclick="document.getElementById('fileInput').click()" class="w-full py-4 px-4 rounded-xl font-bold text-white bg-[#15a892] shadow-lg active:bg-teal-700">
-                    Sacar o Subir Foto
-                </button>
-                <p id="upload-status" class="text-sm mt-3 font-bold text-[#15a892] hidden">Subiendo foto a la nube...</p>
-            </div>
-            <div id="photos-grid" class="grid grid-cols-2 gap-3">
-                <!-- Las fotos aparecerán aquí -->
-            </div>
-        </div>
-
-        <!-- SECCIÓN 2: ENCUESTA -->
-        <div id="tab-survey" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-teal-50" id="survey-form-container">
-                <h2 class="text-xl font-bold text-[#15a892] mb-4">Preguntas de la Radio</h2>
-                
-                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">1. ¿Qué experiencias han tenido respecto al consumo de sust-ansias?</label>
-                <textarea id="q1" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-4" rows="2"></textarea>
-
-                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">2. Si consumen / consumieron, ¿consideran que tienen dependencia a esa sust-ansia?</label>
-                <textarea id="q2" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-4" rows="2"></textarea>
-
-                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">3. ¿Cuánto tiempo de uso de pantalla les figura en el celular?</label>
-                <textarea id="q3" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-4" rows="2"></textarea>
-
-                <label class="block font-bold mb-1 text-sm text-[#5c3a21]">4. ¿A qué edad consideran brindarle un dispositivo digital a sus hijos?</label>
-                <textarea id="q4" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 mb-6" rows="2"></textarea>
-
-                <button id="submit-survey" class="w-full py-4 rounded-2xl font-bold text-white bg-[#15a892] shadow-lg">Enviar Respuestas</button>
-            </div>
-            <div id="survey-success" class="hidden bg-white p-8 rounded-3xl text-center shadow-sm border-2 border-green-400">
-                <h2 class="text-2xl font-bold text-green-500 mb-2">¡Guardado!</h2>
-                <p>Las respuestas se leerán en vivo.</p>
-                <button onclick="location.reload()" class="mt-4 text-[#15a892] font-bold underline">Enviar otra respuesta</button>
-            </div>
-        </div>
-
-        <!-- SECCIÓN 3: ADM -->
-        <div id="tab-admin" class="hidden space-y-6">
-            <div id="admin-login" class="bg-white p-8 rounded-3xl shadow-sm text-center">
-                <h2 class="text-xl font-bold mb-4">Área de Lectura (Radio)</h2>
-                <input type="password" id="admin-pass" placeholder="Ingresa la contraseña" class="w-full p-3 rounded-xl border border-gray-200 mb-4 text-center">
-                <button id="btn-login" class="w-full py-3 rounded-xl font-bold text-white bg-[#5c3a21]">Ingresar</button>
-            </div>
-            <div id="admin-content" class="hidden space-y-4">
-                <div class="bg-[#15a892] p-4 rounded-xl text-white font-bold text-center">Respuestas Recibidas en Vivo</div>
-                <div id="answers-list" class="space-y-4">
-                    <!-- Respuestas de la gente -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- BARRA INFERIOR (BOTONES) -->
-    <nav class="bg-white border-t border-gray-100 fixed bottom-0 w-full z-20 flex justify-around p-3 pb-6">
-        <button onclick="showTab('photos')" id="btn-tab-photos" class="font-bold text-[#15a892]">📸 Fotos</button>
-        <button onclick="showTab('survey')" id="btn-tab-survey" class="font-bold text-gray-400">📝 Preguntas</button>
-        <button onclick="showTab('admin')" id="btn-tab-admin" class="font-bold text-gray-400">🔒 ADM</button>
-    </nav>
-
-    <!-- EL MOTOR DE LA APLICACIÓN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // TUS CLAVES EXACTAS (NO TOCAR)
         const firebaseConfig = {
@@ -102,110 +41,393 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        signInAnonymously(auth).catch(error => {
-            alert("Para que lleguen los datos: Ve a Firebase -> Autenticación -> Pestaña 'Sign-in method' -> Activa 'Anónimo'.");
-        });
+        window.firebaseAPI = { auth, db, signInAnonymously, onAuthStateChanged, collection, addDoc, onSnapshot, query };
+    </script>
 
-        // Cambiar pestañas
-        window.showTab = (tabId) => {
-            document.getElementById('tab-photos').style.display = tabId === 'photos' ? 'block' : 'none';
-            document.getElementById('tab-survey').style.display = tabId === 'survey' ? 'block' : 'none';
-            document.getElementById('tab-admin').style.display = tabId === 'admin' ? 'block' : 'none';
-            
-            document.getElementById('btn-tab-photos').className = tabId === 'photos' ? 'font-bold text-[#15a892]' : 'font-bold text-gray-400';
-            document.getElementById('btn-tab-survey').className = tabId === 'survey' ? 'font-bold text-[#15a892]' : 'font-bold text-gray-400';
-            document.getElementById('btn-tab-admin').className = tabId === 'admin' ? 'font-bold text-[#5c3a21]' : 'font-bold text-gray-400';
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const Icons = {
+            Clipboard: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>,
+            Lock: ({size, strokeWidth, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+            Send: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>,
+            Message: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+            Check: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>,
+            Chart: ({size, className}) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
         };
 
-        // Enviar Encuesta
-        document.getElementById('submit-survey').addEventListener('click', async () => {
-            const btn = document.getElementById('submit-survey');
-            btn.innerText = "Enviando...";
-            const ans = {
-                q1: document.getElementById('q1').value,
-                q2: document.getElementById('q2').value,
-                q3: document.getElementById('q3').value,
-                q4: document.getElementById('q4').value
-            };
+        const LOGO_URL = "logo.jpg";
+        const ADMIN_PASSWORD = "ARBOL26";
+        
+        // La nueva colección en la base de datos (empieza de cero)
+        const DB_COLLECTION = 'survey_v2'; 
+
+        // Generar años del 1 al 18
+        const opcionesEdad = Array.from({length: 18}, (_, i) => `${i + 1} AÑO${i===0 ? '' : 'S'}`);
+        // Colores para gráficos
+        const chartColors = ['#15a892', '#5c3a21', '#4ade80', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6', '#14b8a6', '#f43f5e', '#a3e635'];
+
+        const SURVEY_QUESTIONS = [
+          {
+            id: 'q1',
+            type: 'text',
+            text: '¿Qué experiencias han tenido respecto al consumo de sust-ansias?'
+          },
+          {
+            id: 'q2',
+            type: 'choice',
+            text: 'Si consumen / consumieron algún tipo de sust-ansia, ¿consideran que tienen dependencia a esa sust-ansia?',
+            options: ['SÍ', 'NO', 'HE TENIDO DEPENDENCIA ALGUNA VEZ', 'NUNCA LO HE PENSADO']
+          },
+          {
+            id: 'q3',
+            type: 'choice',
+            text: '¿Cuánto tiempo de uso de pantalla les figura en el celular?',
+            options: ['+ de 2hs', '+ de 3hs', '+ de 5 hs', '+ de 6hs', '+ mas de 7hs', '+ de 9hs', '+ 10hs', '+ de 10hs', '+ de 14hs']
+          },
+          {
+            id: 'q4',
+            type: 'choice',
+            text: '¿A qué edad consideran brindarle un dispositivo digital a sus hijos?',
+            options: opcionesEdad
+          }
+        ];
+
+        // Componente Gráfico de Torta
+        const PieChart = ({ data, title }) => {
+          const total = data.reduce((acc, curr) => acc + curr.value, 0);
+          let cumulativePercent = 0;
+
+          if (total === 0) return <div className="text-gray-400 italic text-sm text-center py-4">Aún nadie respondió esta pregunta.</div>;
+
+          return (
+            <div className="flex flex-col items-center">
+              <svg viewBox="-1 -1 2 2" className="w-40 h-40 transform -rotate-90 drop-shadow-md mb-4">
+                {data.map(slice => {
+                  if (slice.value === 0) return null;
+                  const percent = slice.value / total;
+                  const startAngle = cumulativePercent * 2 * Math.PI;
+                  cumulativePercent += percent;
+                  const endAngle = cumulativePercent * 2 * Math.PI;
+                  
+                  const startX = Math.cos(startAngle);
+                  const startY = Math.sin(startAngle);
+                  const endX = Math.cos(endAngle);
+                  const endY = Math.sin(endAngle);
+                  const largeArcFlag = percent > 0.5 ? 1 : 0;
+                  
+                  if (percent === 1) return <circle cx="0" cy="0" r="1" fill={slice.color} key={slice.label}/>;
+                  const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+                  
+                  return <path d={pathData} fill={slice.color} key={slice.label} className="transition-all duration-300" />;
+                })}
+              </svg>
+              
+              <div className="w-full space-y-1">
+                {data.filter(d => d.value > 0).map(slice => (
+                  <div key={slice.label} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded-lg border border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full shadow-sm" style={{backgroundColor: slice.color}}></span>
+                      <span className="font-medium text-gray-700">{slice.label}</span>
+                    </div>
+                    <span className="font-bold text-gray-900 whitespace-nowrap ml-2">
+                      {Math.round((slice.value/total)*100)}% <span className="text-gray-400 font-normal">({slice.value})</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        };
+
+        function App() {
+          const [showIntro, setShowIntro] = useState(true);
+          const [activeTab, setActiveTab] = useState('survey');
+          const [isAuthLoading, setIsAuthLoading] = useState(true);
+          const [user, setUser] = useState(null);
+          
+          const [surveyAnswers, setSurveyAnswers] = useState([]);
+          const [hasSubmittedSurvey, setHasSubmittedSurvey] = useState(false);
+          
+          const [isAdmin, setIsAdmin] = useState(false);
+          const [passwordInput, setPasswordInput] = useState('');
+          const [currentAnswers, setCurrentAnswers] = useState({});
+          const [isSubmitting, setIsSubmitting] = useState(false);
+
+          // Lógica de Intro 3 segundos
+          useEffect(() => {
+            const timer = setTimeout(() => {
+                setShowIntro(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+          }, []);
+
+          // Inicializar Firebase
+          useEffect(() => {
+            const timer = setInterval(() => {
+                if (window.firebaseAPI) {
+                    clearInterval(timer);
+                    initFirebase();
+                }
+            }, 100);
+            return () => clearInterval(timer);
+          }, []);
+
+          const initFirebase = async () => {
+            const fb = window.firebaseAPI;
             try {
-                await addDoc(collection(db, 'survey'), { answers: ans, timestamp: Date.now() });
-                document.getElementById('survey-form-container').style.display = 'none';
-                document.getElementById('survey-success').style.display = 'block';
-            } catch(e) {
-                alert("Activa los permisos en la base de datos de Firebase.");
-                btn.innerText = "Enviar Respuestas";
+              await fb.signInAnonymously(fb.auth); 
+              fb.onAuthStateChanged(fb.auth, (currentUser) => {
+                setUser(currentUser);
+                setIsAuthLoading(false);
+                if (currentUser) loadData(fb);
+              });
+            } catch (error) {
+              console.error("Error Auth:", error);
+              setIsAuthLoading(false);
             }
-        });
+          };
 
-        // Entrar a ADM
-        document.getElementById('btn-login').addEventListener('click', () => {
-            if(document.getElementById('admin-pass').value === 'ARBOL26') {
-                document.getElementById('admin-login').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
+          const loadData = (fb) => {
+            const surveyRef = fb.collection(fb.db, DB_COLLECTION);
+            fb.onSnapshot(fb.query(surveyRef), (snapshot) => {
+              const answersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              answersData.sort((a, b) => b.timestamp - a.timestamp); 
+              setSurveyAnswers(answersData);
+            });
+          };
+
+          const handleSurveySubmit = async (e) => {
+            e.preventDefault();
+            // Validar que al menos una haya sido respondida
+            const hasAnyAnswer = Object.values(currentAnswers).some(val => val.trim() !== '');
+            if (!hasAnyAnswer) {
+                alert("Por favor, responde al menos una pregunta.");
+                return;
+            } 
+
+            setIsSubmitting(true);
+            try {
+              const fb = window.firebaseAPI;
+              const surveyRef = fb.collection(fb.db, DB_COLLECTION);
+              await fb.addDoc(surveyRef, {
+                answers: currentAnswers,
+                timestamp: Date.now(),
+                userId: user.uid
+              });
+              setHasSubmittedSurvey(true);
+            } catch (error) {
+              alert("Asegúrate de haber activado el método Anónimo en Firebase y dar permisos.");
+            } finally {
+              setIsSubmitting(false);
+            }
+          };
+
+          const handleAdminLogin = (e) => {
+            e.preventDefault();
+            if (passwordInput === ADMIN_PASSWORD) {
+              setIsAdmin(true);
+              setPasswordInput('');
             } else {
-                alert('Contraseña incorrecta');
+              setPasswordInput('');
+              alert("Contraseña incorrecta");
             }
-        });
+          };
 
-        // Cargar respuestas de ADM en vivo
-        onSnapshot(collection(db, 'survey'), (snap) => {
-            const list = document.getElementById('answers-list');
-            list.innerHTML = '';
-            const allDocs = [];
-            snap.forEach(doc => allDocs.push(doc.data()));
-            allDocs.sort((a, b) => b.timestamp - a.timestamp); // Mas nuevas arriba
+          // --- PANTALLA INTRODUCTORIA ---
+          if (showIntro) {
+              return (
+                  <div className="fixed inset-0 bg-white z-50 flex items-center justify-center animate-pulse">
+                      <img src="INTRO.jpeg" alt="Intro" className="w-full max-w-md h-full object-cover" onError={(e) => { e.target.style.display='none'; setShowIntro(false); }} />
+                  </div>
+              )
+          }
 
-            allDocs.forEach(dataObj => {
-                const data = dataObj.answers;
-                const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-xl shadow-sm border-l-4 border-[#15a892] text-sm';
-                div.innerHTML = `
-                    ${data.q1 ? `<p class="mb-2"><b class="text-[#15a892]">1.</b> ${data.q1}</p>` : ''}
-                    ${data.q2 ? `<p class="mb-2"><b class="text-[#15a892]">2.</b> ${data.q2}</p>` : ''}
-                    ${data.q3 ? `<p class="mb-2"><b class="text-[#15a892]">3.</b> ${data.q3}</p>` : ''}
-                    ${data.q4 ? `<p><b class="text-[#15a892]">4.</b> ${data.q4}</p>` : ''}
-                `;
-                list.appendChild(div);
-            });
-        });
+          if (isAuthLoading) {
+            return <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-[#15a892] font-bold text-xl"><div className="animate-pulse mb-4">Conectando...</div></div>;
+          }
 
-        // Subir y mostrar Fotos
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            document.getElementById('upload-status').style.display = 'block';
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = async () => {
-                    const canvas = document.createElement('canvas');
-                    const scale = img.width > 600 ? 600 / img.width : 1;
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    try {
-                        await addDoc(collection(db, 'photos'), { url: canvas.toDataURL('image/jpeg', 0.6), timestamp: Date.now() });
-                    } catch(err) {}
-                    document.getElementById('upload-status').style.display = 'none';
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
+          return (
+            <div className="min-h-screen bg-gray-50 flex flex-col font-sans relative">
+              <header className="bg-white shadow-sm sticky top-0 z-10 rounded-b-3xl">
+                <div className="max-w-md mx-auto px-4 py-4 flex flex-col items-center">
+                  <img src={LOGO_URL} alt="Centro de día El Árbol" className="h-20 w-auto object-contain mb-2" onError={(e) => { e.target.style.display='none'; }}/>
+                  <h1 className="text-xl font-black text-[#15a892] tracking-wide text-center uppercase leading-tight">
+                    Sust-Ansias<br/><span className="text-[#5c3a21]">Sin Filtro</span>
+                  </h1>
+                </div>
+              </header>
 
-        onSnapshot(collection(db, 'photos'), (snap) => {
-            const grid = document.getElementById('photos-grid');
-            grid.innerHTML = '';
-            const allPhotos = [];
-            snap.forEach(doc => allPhotos.push(doc.data()));
-            allPhotos.sort((a, b) => b.timestamp - a.timestamp);
-            allPhotos.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'aspect-square bg-gray-200 rounded-2xl overflow-hidden';
-                div.innerHTML = `<img src="${p.url}" class="w-full h-full object-cover">`;
-                grid.appendChild(div);
-            });
-        });
+              <main className="flex-1 max-w-md w-full mx-auto p-4 overflow-y-auto pb-28">
+
+                {/* --- ENCUESTA --- */}
+                {activeTab === 'survey' && (
+                  <div className="space-y-4 animate-fadeIn">
+                    {hasSubmittedSurvey ? (
+                      <div className="bg-white p-8 rounded-3xl shadow-sm text-center border border-green-100 flex flex-col items-center mt-10">
+                        <Icons.Check size={64} className="text-[#22c55e] mb-4" />
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">¡Gracias por participar!</h2>
+                        <p className="text-gray-600">Tus respuestas serán leídas en el bloque radial.</p>
+                        <button onClick={() => { setHasSubmittedSurvey(false); setCurrentAnswers({}); }} className="mt-8 text-[#15a892] font-bold py-3 px-6 rounded-xl bg-teal-50 hover:bg-teal-100 transition-colors">
+                          Completar de nuevo
+                        </button>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSurveySubmit} className="space-y-6">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-teal-50">
+                          <h2 className="text-xl font-bold text-[#15a892] mb-1">Tu opinión importa</h2>
+                          <p className="text-sm text-gray-500 mb-6">Contesta lo que sientas para debatir en la radio.</p>
+
+                          <div className="space-y-8">
+                            {SURVEY_QUESTIONS.map((q, index) => (
+                              <div key={q.id} className="space-y-3">
+                                <label className="block font-bold text-gray-800 leading-tight">
+                                  <span className="text-[#15a892] mr-2">{index + 1}.</span>{q.text}
+                                </label>
+                                
+                                {q.type === 'text' ? (
+                                    <textarea 
+                                      className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#15a892] focus:ring-2 focus:ring-[#15a892]/20 outline-none transition-all text-sm"
+                                      rows="4"
+                                      placeholder="Escribe tu respuesta aquí..."
+                                      value={currentAnswers[q.id] || ''}
+                                      onChange={(e) => setCurrentAnswers({...currentAnswers, [q.id]: e.target.value})}
+                                    ></textarea>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {q.options.map(option => (
+                                        <button 
+                                          type="button" 
+                                          key={option} 
+                                          onClick={() => setCurrentAnswers({...currentAnswers, [q.id]: option})}
+                                          className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                                            currentAnswers[q.id] === option 
+                                                ? 'border-[#15a892] bg-teal-50 text-[#15a892] shadow-sm' 
+                                                : 'border-gray-100 bg-gray-50 text-gray-700 hover:border-gray-200'
+                                          }`}>
+                                          {option}
+                                        </button>
+                                      ))}
+                                    </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className={`w-full py-4 px-4 rounded-2xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all ${isSubmitting ? 'bg-gray-400' : 'bg-gradient-to-r from-[#15a892] to-[#2dd4bf] hover:opacity-90'}`}
+                        >
+                          {isSubmitting ? 'Enviando...' : <><Icons.Send size={20} /> Enviar Respuestas</>}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                )}
+
+                {/* --- ADM (LECTURA DE RESPUESTAS) --- */}
+                {activeTab === 'admin' && (
+                  <div className="space-y-6 animate-fadeIn">
+                    {!isAdmin ? (
+                      <div className="bg-white p-8 rounded-3xl shadow-sm text-center border border-gray-100 max-w-sm mx-auto mt-10">
+                        <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Icons.Lock size={32} className="text-[#15a892]" strokeWidth="2"/>
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">Acceso a Lectura</h2>
+                        <p className="text-sm text-gray-500 mb-6">Para uso de la radio abierta.</p>
+                        
+                        <form onSubmit={handleAdminLogin} className="space-y-4">
+                          <input type="password" placeholder="Contraseña" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)}
+                            className="w-full px-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:border-[#15a892] focus:ring-2 focus:ring-[#15a892]/20 text-center font-bold tracking-widest text-lg" />
+                          <button type="submit" className="w-full py-4 px-4 rounded-xl font-bold text-white shadow-md bg-[#5c3a21] hover:bg-[#4a2e1a] transition-colors">
+                            Ingresar
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="bg-gradient-to-r from-[#15a892] to-[#2dd4bf] p-6 rounded-3xl shadow-md text-white flex justify-between items-center">
+                          <div>
+                            <h2 className="text-2xl font-black">Resultados</h2>
+                            <p className="opacity-90 font-medium">Total participaciones: {surveyAnswers.length}</p>
+                          </div>
+                          <Icons.Chart size={40} className="opacity-80" />
+                        </div>
+
+                        {SURVEY_QUESTIONS.map((q, index) => {
+                          // Extraer respuestas válidas para esta pregunta
+                          const validAnswers = surveyAnswers
+                            .map(ans => ans.answers && ans.answers[q.id])
+                            .filter(val => val !== undefined && val !== null && val.trim() !== '');
+
+                          return (
+                            <div key={q.id} className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+                              <h3 className="font-bold text-[#5c3a21] mb-4 leading-tight border-b border-gray-100 pb-3">
+                                <span className="text-[#15a892] mr-1">{index + 1}.</span> {q.text}
+                              </h3>
+                              
+                              {q.type === 'text' ? (
+                                  // --- MODO TEXTO: Mostrar lista de mensajes (P1) ---
+                                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                    {validAnswers.length > 0 ? (
+                                      validAnswers.map((text, idx) => (
+                                        <div key={idx} className="bg-teal-50/70 p-4 rounded-xl text-gray-700 text-sm border-l-4 border-[#15a892] shadow-sm">
+                                          {text}
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <p className="text-gray-400 italic text-sm text-center py-4">Aún nadie respondió esta pregunta.</p>
+                                    )}
+                                  </div>
+                              ) : (
+                                  // --- MODO GRÁFICO: Mostrar Torta (P2, P3, P4) ---
+                                  (() => {
+                                      // Contar repeticiones de cada opción
+                                      const counts = {};
+                                      validAnswers.forEach(ans => { counts[ans] = (counts[ans] || 0) + 1; });
+                                      
+                                      // Preparar data para el gráfico
+                                      const chartData = q.options.map((opt, idx) => ({
+                                          label: opt,
+                                          value: counts[opt] || 0,
+                                          color: chartColors[idx % chartColors.length]
+                                      }));
+                                      
+                                      return <PieChart data={chartData} />;
+                                  })()
+                              )}
+                            </div>
+                          );
+                        })}
+                        
+                        <button onClick={() => setIsAdmin(false)} className="w-full py-4 text-gray-500 font-bold bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50">Cerrar Sesión ADM</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </main>
+
+              {/* NAV: Reducido a 2 opciones (Preguntas y ADM) */}
+              <nav className="bg-white border-t border-gray-100 fixed bottom-0 w-full z-20 pb-4">
+                <div className="max-w-md mx-auto flex justify-around p-2">
+                  <button onClick={() => setActiveTab('survey')} className={`flex flex-col items-center p-3 rounded-2xl w-32 transition-all ${activeTab === 'survey' ? 'bg-teal-50 text-[#15a892]' : 'text-gray-400 hover:text-gray-500'}`}>
+                    <Icons.Clipboard size={24} strokeWidth={activeTab === 'survey' ? 2.5 : 2} />
+                    <span className="text-xs font-bold mt-1">Preguntas</span>
+                  </button>
+                  <button onClick={() => setActiveTab('admin')} className={`flex flex-col items-center p-3 rounded-2xl w-32 transition-all ${activeTab === 'admin' ? 'bg-[#f8ebde] text-[#5c3a21]' : 'text-gray-400 hover:text-gray-500'}`}>
+                    <Icons.Lock size={24} strokeWidth={activeTab === 'admin' ? 2.5 : 2} />
+                    <span className="text-xs font-bold mt-1">ADM</span>
+                  </button>
+                </div>
+              </nav>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
