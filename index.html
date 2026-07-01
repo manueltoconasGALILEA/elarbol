@@ -46,18 +46,19 @@
             const [pass, setPass] = useState('');
 
             useEffect(() => {
+                // Intro de 3 segundos
                 setTimeout(() => setShowIntro(false), 3000);
                 const fb = window.firebaseAPI;
                 fb.signInAnonymously(fb.auth);
 
-                const q = fb.query(fb.collection(fb.db, 'survey_v2'), fb.orderBy('timestamp', 'desc'));
+                const q = fb.query(fb.collection(fb.db, 'survey_v3'), fb.orderBy('timestamp', 'desc'));
                 fb.onSnapshot(q, (snap) => {
                     const data = [];
                     snap.forEach(d => data.push(d.data()));
                     setSurveyAnswers(data);
                 });
 
-                const qMsg = fb.query(fb.collection(fb.db, 'messages'), fb.orderBy('timestamp', 'desc'));
+                const qMsg = fb.query(fb.collection(fb.db, 'messages_v3'), fb.orderBy('timestamp', 'desc'));
                 fb.onSnapshot(qMsg, (snap) => {
                     const data = [];
                     snap.forEach(d => data.push(d.data()));
@@ -67,7 +68,7 @@
 
             const sendMsg = async () => {
                 if(!msgInput.trim()) return;
-                await window.firebaseAPI.addDoc(window.firebaseAPI.collection(window.firebaseAPI.db, 'messages'), { text: msgInput, timestamp: Date.now() });
+                await window.firebaseAPI.addDoc(window.firebaseAPI.collection(window.firebaseAPI.db, 'messages_v3'), { text: msgInput, timestamp: Date.now() });
                 setMsgInput('');
             };
 
@@ -93,16 +94,17 @@
                     {activeTab === 'survey' && <SurveyForm />}
                     {activeTab === 'msg' && (
                         <div className="space-y-4">
-                            <textarea value={msgInput} onChange={e=>setMsgInput(e.target.value)} className="w-full p-4 rounded-xl border" placeholder="Deja tu mensaje..."></textarea>
+                            <h2 className="font-bold text-center mb-4">Interacción abierta</h2>
+                            <textarea value={msgInput} onChange={e=>setMsgInput(e.target.value)} className="w-full p-4 rounded-xl border" placeholder="Deja tu comentario..."></textarea>
                             <button onClick={sendMsg} className="w-full py-3 bg-[#15a892] text-white font-bold rounded-xl">Enviar Mensaje</button>
-                            {messages.map((m,i)=><div key={i} className="bg-white p-3 rounded-lg border text-sm">{m.text}</div>)}
+                            {messages.map((m,i)=><div key={i} className="bg-white p-3 rounded-lg border text-sm shadow-sm">{m.text}</div>)}
                         </div>
                     )}
                     {activeTab === 'admin' && (
                         !isAdmin ? <div className="space-y-4 bg-white p-6 rounded-2xl border"><input type="password" placeholder="Contraseña ADM" onChange={e=>setPass(e.target.value)} className="w-full p-3 border rounded-xl" /><button onClick={()=>pass==='ARBOL26' && setIsAdmin(true)} className="w-full bg-[#5c3a21] text-white p-3 rounded-xl font-bold">INGRESAR</button></div> :
                         <div className="pb-10">
                             <div className="bg-white p-6 rounded-3xl shadow-sm border mb-6 text-center"><h3 className="text-gray-500 font-bold">TOTAL DE ENCUESTADOS</h3><div className="text-5xl font-black text-[#15a892]">{surveyAnswers.length}</div></div>
-                            <h2 className="font-bold text-xl mb-4">1. Experiencias de consumo:</h2>
+                            <h2 className="font-bold text-xl mb-4 text-[#5c3a21]">1. Experiencias:</h2>
                             <div className="bg-white p-4 rounded-xl border mb-6 max-h-60 overflow-y-auto">{surveyAnswers.map((a,i)=><p key={i} className="border-b p-2 text-sm">{a.answers.q1}</p>)}</div>
                             <PieChart title="2. ¿Tienes dependencia?" data={['SÍ', 'NO', 'HE TENIDO DEPENDENCIA ALGUNA VEZ', 'NUNCA LO HE PENSADO'].map(o=>({label:o, value:surveyAnswers.filter(a=>a.answers.q2===o).length}))} />
                             <PieChart title="3. Tiempo de pantalla" data={Array.from({length:15},(_,i)=>i+1+' HORAS').map(o=>({label:o, value:surveyAnswers.filter(a=>a.answers.q3===o).length}))} />
@@ -123,8 +125,8 @@
             const [formData, setFormData] = useState({ q1: '', q2: '', q3: '', q4: '' });
             const [submitted, setSubmitted] = useState(false);
             const submit = async () => {
-                if(!formData.q2 || !formData.q3 || !formData.q4) return alert("Completa las opciones.");
-                await window.firebaseAPI.addDoc(window.firebaseAPI.collection(window.firebaseAPI.db, 'survey_v2'), { answers: formData, timestamp: Date.now() });
+                if(!formData.q1 || !formData.q2 || !formData.q3 || !formData.q4) return alert("Completa todas las preguntas.");
+                await window.firebaseAPI.addDoc(window.firebaseAPI.collection(window.firebaseAPI.db, 'survey_v3'), { answers: formData, timestamp: Date.now() });
                 setSubmitted(true);
             };
             if(submitted) return <div className="text-center p-10 font-bold text-[#15a892] bg-white rounded-2xl border">¡Gracias por participar!</div>;
@@ -146,6 +148,3 @@
     </script>
 </body>
 </html>
-```
-
-¡Ya tienes todo lo que pediste! La app está robusta, los gráficos tienen sus colores, la sección de mensajes está integrada y el contador total aparece en el panel de administrador. ¡Mucha suerte mañana!
